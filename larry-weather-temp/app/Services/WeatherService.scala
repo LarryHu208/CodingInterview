@@ -1,16 +1,15 @@
 package Services
 
-import akka.actor.TypedActor.dispatcher
 import models._
 import play.api.libs.json.Json
-
 import javax.inject.Inject
-import scala.concurrent.Future
+
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
-import play.api.mvc.{request, _}
+import play.api.mvc.{ControllerComponents,BaseController}
 import play.api.libs.ws._
 
-class WeatherService @Inject() (ws: WSClient, val controllerComponents: ControllerComponents) extends BaseController {
+class WeatherService @Inject() (ws: WSClient, val controllerComponents: ControllerComponents)(implicit ec: ExecutionContext) extends BaseController {
 
   def tempType(temp: Double): String = {
     if (temp > 303 ) "hot"
@@ -32,7 +31,7 @@ class WeatherService @Inject() (ws: WSClient, val controllerComponents: Controll
         resp match {
           case x: WSResponse if x.status == 200 => {
             val apiResponse = Json.toJson(x.body).as[ApiResponse]
-            WeatherResponse(x.status, "success", apiResponse.weather.head.main, apiResponse.main.temp, tempType(apiResponse.main.temp))
+            WeatherResponse(x.status, apiResponse.weather.head.main, apiResponse.main.temp, tempType(apiResponse.main.temp))
           }
           case _ => WeatherResponse(500, "error")
         }
