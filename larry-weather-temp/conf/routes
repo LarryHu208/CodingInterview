@@ -5,4 +5,5 @@
 # An example controller showing a sample home page
 GET     /weather                     controllers.WeatherController.getAll
 GET     /weather/:itemId             controllers.WeatherController.getById(itemId: Long)
-GET     /weather/:lan/:lon           controllers.WeatherController.getResponseByCoord(lan: String, lon: String)
+GET     /weather/:lan/:lon           controllers.WeatherController.getCurrentResponseByCoord(lan: String, lon: String)
+GET     /onetime/:lan/:lon           controllers.WeatherController.getOneTimeResponseByCoord(lan: String, lon: String)

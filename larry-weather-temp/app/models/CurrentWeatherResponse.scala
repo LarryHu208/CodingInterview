@@ -2,10 +2,10 @@ package models
 
 import play.api.libs.json.{Format, Json, OFormat}
 
-case class WeatherResponse(status: Int, condition: String = "", temperature: Double = 0, tempType: String = "")
+case class CurrentWeatherResponse(status: Int, condition: String = "", temperature: Double = 0, tempType: String = "")
 
-object WeatherResponse  {
-  implicit val format: Format[WeatherResponse] = Json.format[WeatherResponse]
+object CurrentWeatherResponse  {
+  implicit val format: Format[CurrentWeatherResponse] = Json.format[CurrentWeatherResponse]
 }
 
 case class Coord( lon: Double, lat: Double)
@@ -26,7 +26,7 @@ object Main  {
   implicit val format: Format[Main] = Json.format[Main]
 }
 
-case class Wind( speed: Double, deg: Double, gust: Double)
+case class Wind( speed: Double, deg: Double, gust: Option[Double] = None)
 
 object Wind  {
   implicit val format: Format[Wind] = Json.format[Wind]
@@ -44,13 +44,13 @@ object Clouds  {
   implicit val format: Format[Clouds] = Json.format[Clouds]
 }
 
-case class ApiResponse(coord: Coord,
+case class CurrentApiResponse(coord: Coord,
                        weather: Seq[Weather],
                        main: Main,
                        wind: Option[Wind] = None,
                        rain: Option[Rain] = None,
                        clouds: Option[Clouds] = None )
 
-object ApiResponse  {
-  implicit val format: Format[ApiResponse] = Json.format[ApiResponse]
+object CurrentApiResponse  {
+  implicit val format: Format[CurrentApiResponse] = Json.format[CurrentApiResponse]
 }

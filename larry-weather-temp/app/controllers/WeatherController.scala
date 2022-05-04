@@ -36,35 +36,68 @@ class WeatherController @Inject() ( val controllerComponents: ControllerComponen
     }
   }
 
-  def getResponseByCoord(lan: String, lon: String) =  Action.async {
-    val res = queryWeather(lan, lon)
+  def getCurrentResponseByCoord(lan: String, lon: String) =  Action.async {
+    val res = queryCurrentWeather(lan, lon)
+    res
+  }
+
+  def getOneTimeResponseByCoord(lan: String, lon: String) =  Action.async {
+    val res = queryOneTimeWeather(lan, lon)
     res
   }
 
   def tempType(temp: Double): String = temp match {
     case x if (x > 303 ) => "hot";
     case x if (x < 273) => "cold";
-    case _ => "cool"
+    case _ => "moderate"
   }
 
-  def queryWeather( lat: String, lon: String ): Future[ Result] = {
+  def queryOneTimeWeather( lat: String, lon: String ): Future[ Result] = {
     val APIkey = "6cf82f448e453a36ec928ce3b801279e"
-    val url = s"https://api.openweathermap.org/data/2.5/weather"
+    val url = s"https://api.openweathermap.org/data/2.5/onecall"
     val request: WSRequest = ws.url(url)
     val complexRequest: WSRequest =
       request
-        .addQueryStringParameters( "lat" -> lat, "lon" -> lon, "appid" -> APIkey )
+        .addQueryStringParameters( "lat" -> lat, "lon" -> lon, "exclude" -> "minutely,hourly,daily", "appid" -> APIkey )
         .addHttpHeaders("Accept" -> "application/json")
 
     complexRequest.get() map {
       //resp => Ok( resp.body )
       case x: WSResponse if x.status == 200 => {
-        val apiResponse = Json.parse(x.body).as[ApiResponse]
-        val wsResp = WeatherResponse(
+        val apiResponse = Json.parse(x.body).as[OneTimeApiResponse]
+
+        val wsResp = OneTimeWeatherResponse(
+          x.status,
+          Try(apiResponse.current.weather.headOption.toString).getOrElse("None"),
+          apiResponse.current.temp - 273,
+          tempType(apiResponse.current.temp),
+          Try(apiResponse.alerts.headOption.toString).getOrElse("None")
+        )
+        Ok(Json.toJson(wsResp))
+      }
+      case _ => NotFound("ERROR")
+    }
+  }
+
+  def queryCurrentWeather( lat: String, lon: String ): Future[ Result] = {
+    val APIkey = "6cf82f448e453a36ec928ce3b801279e"
+    val url = s"https://api.openweathermap.org/data/2.5/weather"
+    val request: WSRequest = ws.url(url)
+    val complexRequest: WSRequest =
+      request
+        .addQueryStringParameters( "lat" -> lat, "lon" -> lon, "exclude" -> "minutely,hourly,daily", "appid" -> APIkey )
+        .addHttpHeaders("Accept" -> "application/json")
+
+    complexRequest.get() map {
+      //resp => Ok( resp.body )
+      case x: WSResponse if x.status == 200 => {
+        val apiResponse = Json.parse(x.body).as[CurrentApiResponse]
+        val wsResp = CurrentWeatherResponse(
           x.status,
           Try(apiResponse.weather.head.main).getOrElse("None"),
-          apiResponse.main.temp,
-          tempType(apiResponse.main.temp)
+          apiResponse.main.temp - 273,
+          tempType(apiResponse.main.temp),
+
         )
         Ok(Json.toJson(wsResp))
       }

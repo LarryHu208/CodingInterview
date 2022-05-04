@@ -17,7 +17,7 @@ class WeatherService @Inject() (ws: WSClient, val controllerComponents: Controll
     else "cool"
   }
 
-  def queryWeather( lat: String, lon: String, APIkey: String): Future[ WeatherResponse ] = {
+  def queryWeather( lat: String, lon: String, APIkey: String): Future[ CurrentWeatherResponse ] = {
     //takes in Lat and Long
     val url = s"https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${APIkey}"
     val request: WSRequest = ws.url(url)
@@ -30,10 +30,10 @@ class WeatherService @Inject() (ws: WSClient, val controllerComponents: Controll
       resp =>
         resp match {
           case x: WSResponse if x.status == 200 => {
-            val apiResponse = Json.toJson(x.body).as[ApiResponse]
-            WeatherResponse(x.status, apiResponse.weather.head.main, apiResponse.main.temp, tempType(apiResponse.main.temp))
+            val apiResponse = Json.toJson(x.body).as[CurrentApiResponse]
+            CurrentWeatherResponse(x.status, apiResponse.weather.head.main, apiResponse.main.temp, tempType(apiResponse.main.temp))
           }
-          case _ => WeatherResponse(500, "error")
+          case _ => CurrentWeatherResponse(500, "error")
         }
     }
   }
